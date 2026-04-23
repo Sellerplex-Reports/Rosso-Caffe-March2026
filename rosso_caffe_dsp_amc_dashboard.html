@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rosso Caffè — DSP & AMC Report · March 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #06080d;
+  --bg2:      #0c1018;
+  --surface:  #111620;
+  --surface2: #17202e;
+  --border:   #1e2a3a;
+  --border2:  #253347;
+  --text:     #dde6f5;
+  --muted:    #5e7599;
+  --dim:      #2d3f57;
+  --accent:   #c9922a;
+  --accent2:  #e8b84b;
+  --blue:     #3b82f6;
+  --teal:     #14b8a6;
+  --green:    #22c55e;
+  --red:      #ef4444;
+  --amber:    #f59e0b;
+  --purple:   #a855f7;
+  --radius:   10px;
+  --mono:     'JetBrains Mono', monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:13.5px}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* TOPBAR */
+.topbar{
+  background:linear-gradient(90deg,#0a0f1a 0%,#0e1520 100%);
+  border-bottom:1px solid var(--border);
+  padding:0 36px;
+  height:62px;
+  display:flex;align-items:center;gap:20px;
+  position:sticky;top:0;z-index:200;
+}
+.logo-mark{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:800;color:#000;flex-shrink:0;
+}
+.brand{font-size:15px;font-weight:700;letter-spacing:-0.3px}
+.brand span{color:var(--accent2)}
+.topbar-divider{width:1px;height:22px;background:var(--border);flex-shrink:0}
+.period-tag{
+  font-family:var(--mono);font-size:10.5px;
+  background:var(--surface2);border:1px solid var(--border2);
+  color:var(--muted);padding:3px 10px;border-radius:20px;
+}
+.report-label{font-size:11px;color:var(--muted)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* NAV TABS */
+.nav-tabs{
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  padding:0 36px;
+  display:flex;gap:0;overflow-x:auto;
+}
+.nav-tab{
+  padding:14px 22px;font-size:12.5px;font-weight:500;
+  color:var(--muted);background:none;border:none;
+  border-bottom:2px solid transparent;
+  cursor:pointer;transition:all 0.18s;white-space:nowrap;
+  display:flex;align-items:center;gap:7px;
+}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--accent2)}
+.nav-tab .icon{font-size:13px;opacity:0.7}
+
+/* PANEL */
+.panel{display:none;padding:28px 36px;max-width:1600px}
+.panel.active{display:block}
+
+/* SECTION */
+.section{margin-bottom:28px}
+.sec-hd{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.sec-note{font-size:11px;color:var(--dim)}
+
+/* SCORECARD STRIP */
+.scorecard-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sc-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 18px;position:relative;overflow:hidden;transition:border-color 0.2s;
+}
+.sc-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:var(--accent);opacity:0.4;
+}
+.sc-card:hover{border-color:var(--border2)}
+.sc-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;color:var(--muted);margin-bottom:7px}
+.sc-value{font-size:21px;font-weight:700;letter-spacing:-0.5px;color:var(--text);font-variant-numeric:tabular-nums}
+.sc-delta{display:inline-flex;align-items:center;gap:3px;font-family:var(--mono);font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;margin-top:5px}
+.sc-delta.up{background:rgba(34,197,94,.12);color:var(--green)}
+.sc-delta.dn{background:rgba(239,68,68,.12);color:var(--red)}
+.sc-delta.nu{background:rgba(94,117,153,.1);color:var(--muted)}
+.sc-prev{font-size:10px;color:var(--dim);margin-top:3px}
+
+/* HERO SCORECARD */
+.hero-scorecard{
+  display:grid;grid-template-columns:auto 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+}
+.hero-main{
+  background:linear-gradient(160deg,#0d1525,#0a1020);
+  border-right:1px solid var(--border);padding:24px 28px;
+  display:flex;flex-direction:column;justify-content:center;min-width:160px;
+}
+.hero-eyebrow{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin-bottom:6px}
+.hero-val{font-size:38px;font-weight:800;letter-spacing:-1.5px;line-height:1;color:var(--text)}
+.hero-sub{font-size:10px;color:var(--muted);margin-top:6px}
+.hero-stat{padding:16px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:3px}
+.hero-stat:last-child{border-right:none}
+.hs-label{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--dim)}
+.hs-val{font-size:17px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.hs-delta{}
+
+/* GRID LAYOUTS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
+.g-3-2{display:grid;grid-template-columns:3fr 2fr;gap:14px}
+.g-2-1{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+
+/* CARD */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;
+}
+.card-title{font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:3px}
+.card-sub{font-size:10.5px;color:var(--muted);margin-bottom:16px}
+
+/* CHART CANVAS */
+.ch{position:relative}
+.ch.h280{height:280px}.ch.h240{height:240px}.ch.h200{height:200px}.ch.h180{height:180px}.ch.h160{height:160px}
+
+/* TABLE */
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:var(--surface2);border-bottom:1px solid var(--border)}
+th{padding:10px 14px;text-align:right;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:9px 14px;text-align:right;border-bottom:1px solid var(--border);color:var(--text);font-variant-numeric:tabular-nums}
+td:first-child{text-align:left;font-weight:500}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.015)}
+tfoot tr{background:var(--surface2);border-top:1px solid var(--border)}
+tfoot td{font-weight:700}
+
+/* PILLS */
+.pill{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;font-family:var(--mono)}
+.pill-g{background:rgba(34,197,94,.12);color:var(--green)}
+.pill-r{background:rgba(239,68,68,.12);color:var(--red)}
+.pill-a{background:rgba(245,158,11,.12);color:var(--amber)}
+.pill-b{background:rgba(59,130,246,.12);color:var(--blue)}
+.pill-p{background:rgba(168,85,247,.12);color:var(--purple)}
+
+/* LIFT TABLE */
+.lift-row-pos td.lift-val{color:var(--green);font-weight:700}
+.lift-row-neg td.lift-val{color:var(--red);font-weight:700}
+
+/* PATH BAR */
+.path-label{font-family:var(--mono);font-size:10.5px;color:var(--text);background:var(--surface2);border:1px solid var(--border);padding:2px 7px;border-radius:4px}
+
+/* FUNNEL */
+.funnel{display:flex;flex-direction:column;gap:6px;padding:12px 0}
+.funnel-step{display:flex;align-items:center;gap:10px}
+.funnel-bar-bg{flex:1;height:28px;background:var(--surface2);border-radius:5px;overflow:hidden}
+.funnel-bar-fill{height:100%;border-radius:5px;display:flex;align-items:center;padding:0 10px}
+.funnel-fill-text{font-size:11px;font-weight:600;color:#fff;white-space:nowrap}
+.funnel-label{font-size:10.5px;color:var(--muted);width:80px;text-align:right}
+.funnel-num{font-size:11px;font-weight:700;color:var(--text);width:90px;text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+
+/* INLINE BAR */
+.ibar{display:flex;align-items:center;gap:7px}
+.ibar-bg{flex:1;height:4px;background:var(--border);border-radius:2px;min-width:50px}
+.ibar-fill{height:4px;border-radius:2px}
+
+/* SNS PROGRESS */
+.asin-row-bar{width:100%;height:5px;background:var(--border);border-radius:3px;margin-top:3px}
+.asin-bar-fill{height:5px;background:var(--teal);border-radius:3px}
+
+/* SEQUENCE CARDS */
+.seq-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.seq-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;position:relative;overflow:hidden;
+}
+.seq-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+}
+.seq-card.dsp-only::before{background:var(--purple)}
+.seq-card.dsp-sa::before{background:var(--blue)}
+.seq-card.sa-only::before{background:var(--teal)}
+.seq-card.sa-dsp::before{background:var(--accent2)}
+.seq-badge{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;padding:2px 7px;border-radius:3px;display:inline-block;margin-bottom:8px}
+.seq-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px;font-family:var(--mono)}
+.seq-metric{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.seq-m-label{font-size:10px;color:var(--muted)}
+.seq-m-val{font-size:13px;font-weight:700;color:var(--text)}
+.seq-m-val.highlight{color:var(--accent2)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* RESPONSIVE */
+@media(max-width:980px){
+  .nav-tabs,.panel,.topbar{padding-left:16px;padding-right:16px}
+  .g2,.g3,.g4,.g-3-2,.g-2-1,.seq-grid,.hero-scorecard{grid-template-columns:1fr}
+  .scorecard-strip{grid-template-columns:repeat(3,1fr)}
+  .hero-scorecard{display:flex;flex-wrap:wrap}
+  .hero-stat{min-width:140px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo-mark">R</div>
+  <div class="brand">Rosso <span>Caffè</span></div>
+  <div class="topbar-divider"></div>
+  <span class="report-label">DSP &amp; AMC Performance Report</span>
+  <div class="period-tag">March 2026</div>
+  <div class="topbar-right">
+    <div class="live-dot"></div>
+    <span style="font-size:11px;color:var(--muted)">5 Data Sources</span>
+  </div>
+</div>
+
+<!-- NAV TABS -->
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab(0)"><span class="icon">◈</span> DSP Overview</button>
+  <button class="nav-tab" onclick="switchTab(1)"><span class="icon">⟳</span> Exposure Sequences</button>
+  <button class="nav-tab" onclick="switchTab(2)"><span class="icon">⟴</span> Path to Conversion</button>
+  <button class="nav-tab" onclick="switchTab(3)"><span class="icon">◎</span> Attribution</button>
+  <button class="nav-tab" onclick="switchTab(4)"><span class="icon">⬡</span> Subscribe &amp; Save</button>
+  <button class="nav-tab" onclick="switchTab(5)"><span class="icon">⊙</span> Audience &amp; Funnel</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TAB 0: DSP OVERVIEW -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-0">
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Month-over-Month Scorecard</div><div class="sec-note">March 2026 DSP Performance vs February 2026</div></div>
+    <div class="scorecard-strip" id="dsp-scorecard"></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Campaign Strategy Breakdown</div><div class="sec-note">Consideration vs Conversion · March 2026</div></div>
+    <div class="g-3-2">
+      <div class="card">
+        <div class="card-title">Performance by Campaign Strategy</div>
+        <div class="card-sub">Cost, Sales &amp; ROAS by funnel stage</div>
+        <div class="ch h240"><canvas id="strategy-chart"></canvas></div>
+      </div>
+      <div class="tbl-wrap" style="align-self:start">
+        <table id="strategy-table"></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Performance by Order</div><div class="sec-note">All DSP orders · March 2026 · Sorted by Total Cost</div></div>
+    <div class="tbl-wrap"><table id="order-table"></table></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">DSP Incremental Lift Analysis</div><div class="sec-note">SA Only baseline vs Combined SA + DSP · March 2026</div></div>
+    <div class="g2">
+      <div class="tbl-wrap"><table id="lift-table"></table></div>
+      <div class="card">
+        <div class="card-title">DSP Lift: Key Metrics</div>
+        <div class="card-sub">SA Only vs With DSP — % change</div>
+        <div class="ch h240"><canvas id="lift-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TAB 1: EXPOSURE SEQUENCES -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-1">
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Sequence Performance Cards</div><div class="sec-note">March 2026 — All exposure touchpoint sequences</div></div>
+    <div class="seq-grid" id="seq-cards"></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">ROAS by Exposure Sequence</div><div class="sec-note">February vs March 2026</div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">ROAS Comparison</div>
+        <div class="card-sub">Feb 2026 vs Mar 2026 — blended ROAS per sequence</div>
+        <div class="ch h260"><canvas id="roas-seq-chart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">NTB Purchase Rate % by Exposure Group</div>
+        <div class="card-sub">Feb 2026 vs Mar 2026 — New-to-Brand conversion rate</div>
+        <div class="ch h260"><canvas id="ntb-seq-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Total Users &amp; Purchasers</div><div class="sec-note">Volume by sequence — March 2026</div></div>
+    <div class="g-3-2">
+      <div class="card">
+        <div class="card-title">Users vs Purchasers by Sequence</div>
+        <div class="card-sub">March 2026 · log-scale for DSP Only visibility</div>
+        <div class="ch h240"><canvas id="users-chart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Purchase Rate &amp; NTB Rate</div>
+        <div class="card-sub">Conversion quality per sequence</div>
+        <div class="ch h240"><canvas id="prate-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Detailed Sequence Table</div><div class="sec-note">Full metrics — March 2026</div></div>
+    <div class="tbl-wrap"><table id="seq-table"></table></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TAB 2: PATH TO CONVERSION -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-2">
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Top Paths by Total Sales</div><div class="sec-note">Deduplicated · March 2026</div></div>
+    <div class="g-3-2">
+      <div class="tbl-wrap"><table id="ptc-table"></table></div>
+      <div class="card">
+        <div class="card-title">Sales by Path</div>
+        <div class="card-sub">Top 10 paths — Total Product Sales</div>
+        <div class="ch h280"><canvas id="ptc-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">ROAS vs NTB Rate by Path</div><div class="sec-note">Quality vs volume trade-off — March 2026</div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">ROAS by Conversion Path</div>
+        <div class="card-sub">Higher = more efficient spend on this path</div>
+        <div class="ch h240"><canvas id="ptc-roas-chart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">NTB User % by Path</div>
+        <div class="card-sub">Share of new-to-brand users per path</div>
+        <div class="ch h240"><canvas id="ptc-ntb-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TAB 3: ATTRIBUTION -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-3">
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Channel × Attribution Model</div><div class="sec-note">DSP vs Search · First Touch vs Last Touch · March 2026</div></div>
+    <div class="g2">
+      <div class="tbl-wrap"><table id="attr-table"></table></div>
+      <div class="card">
+        <div class="card-title">Attributed Sales by Channel &amp; Model</div>
+        <div class="card-sub">Feb vs Mar 2026</div>
+        <div class="ch h260"><canvas id="attr-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">DSP Attribution Split</div><div class="sec-note">First Touch vs Last Touch — Feb vs Mar trend</div></div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-title">DSP Attribution — March 2026</div>
+        <div class="card-sub">Sales by attribution model</div>
+        <div class="ch h200"><canvas id="dsp-attr-pie-mar"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">DSP Attribution — February 2026</div>
+        <div class="card-sub">Sales by attribution model</div>
+        <div class="ch h200"><canvas id="dsp-attr-pie-feb"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">MoM Attribution Shift</div>
+        <div class="card-sub">First Touch share: Feb → Mar</div>
+        <div class="ch h200"><canvas id="attr-shift-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Campaign: Assisted vs Closed</div><div class="sec-note">DSP campaigns — March 2026</div></div>
+    <div class="g-3-2">
+      <div class="tbl-wrap"><table id="assisted-table"></table></div>
+      <div class="card">
+        <div class="card-title">Assisted vs Closed Sales</div>
+        <div class="card-sub">Top DSP campaigns — which assist most?</div>
+        <div class="ch h260"><canvas id="assisted-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TAB 4: SUBSCRIBE & SAVE -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-4">
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">SnS KPI Summary</div><div class="sec-note">Subscribe &amp; Save performance — March 2026</div></div>
+    <div class="scorecard-strip" id="sns-scorecard"></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">ASIN SnS Penetration</div><div class="sec-note">March 2026 · Sorted by Sales Penetration</div></div>
+    <div class="g-3-2">
+      <div class="tbl-wrap"><table id="sns-asin-table"></table></div>
+      <div class="card">
+        <div class="card-title">Sales Penetration by ASIN</div>
+        <div class="card-sub">% of total sales from SnS subscribers</div>
+        <div class="ch h280"><canvas id="sns-penetration-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">SnS Conversion Funnel</div><div class="sec-note">How many purchases before customers subscribe?</div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">Purchases Before First Subscription</div>
+        <div class="card-sub">March 2026 — SnS enrollment by prior purchase count</div>
+        <div class="ch h260"><canvas id="sns-funnel-chart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Subscriber vs Non-Subscriber</div>
+        <div class="card-sub">Sales &amp; average spend — Feb vs Mar 2026</div>
+        <div class="ch h260"><canvas id="user-type-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- TAB 5: AUDIENCE & FUNNEL -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-5">
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Ad-Exposed vs Non-Ad-Exposed</div><div class="sec-note">Full funnel comparison — March 2026</div></div>
+    <div class="g2">
+      <div class="tbl-wrap"><table id="exposed-table"></table></div>
+      <div class="card">
+        <div class="card-title">Funnel Conversion Rate</div>
+        <div class="card-sub">DPV → ATC → Purchase — Ad Exposed vs Organic</div>
+        <div class="ch h240"><canvas id="funnel-cvr-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Sales &amp; Reach Share</div><div class="sec-note">Ad-Exposed contribution — March 2026</div></div>
+    <div class="g3">
+      <div class="card">
+        <div class="card-title">% of Total Product Sales</div>
+        <div class="card-sub">Ad-Exposed vs Non-Ad-Exposed</div>
+        <div class="ch h200"><canvas id="exp-sales-pie"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">% of Total Reach (Users)</div>
+        <div class="card-sub">Ad-Exposed vs Non-Ad-Exposed</div>
+        <div class="ch h200"><canvas id="exp-reach-pie"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Exposure Group Sales Contribution</div>
+        <div class="card-sub">Single, Double, Multi exposure</div>
+        <div class="ch h200"><canvas id="exp-group-pie"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hd"><div class="sec-title">Purchase Lead Time</div><div class="sec-note">Days from Detail Page View to Purchase — March 2026</div></div>
+    <div class="card">
+      <div class="card-title">Ad-Exposed vs Non-Ad-Exposed Purchase Timing</div>
+      <div class="card-sub">Volume of purchases by days from first DPV (log scale)</div>
+      <div class="ch h260"><canvas id="lead-time-chart"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ SCRIPT ═══ -->
+<script>
+// ─────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────
+const D = {
+  // DSP Overview scorecard: Mar vs Feb (from PDF / Excel DSP lift)
+  dsp: {
+    mar: { cost:11571, sales:31602, roas:2.73, impressions:2800000, viewableImp:2200000, ecpm:4.11, dpvr:0.0058,
+           purchases:683, purchaseViews:606, purchaseClicks:77, ntbPurchase:114, ntbPct:0.1669, snss:104, atc:1582 },
+    feb: { cost:11260, sales:15942, roas:1.42, impressions:2233782, viewableImp:1521072, ecpm:5.04, dpvr:0.0054,
+           purchases:326, purchaseViews:297, purchaseClicks:29, ntbPurchase:44, ntbPct:0.1350, snss:44, atc:890 }
+  },
+  // Campaign strategy
+  strategy: [
+    { name:'Consideration Campaigns', cost:5810.27, sales:701.76, roas:0.12, purchases:17, clicks:6, views:11, snss:10, atc:145, pctCost:50.22, pctSales:2.23 },
+    { name:'Conversion Campaigns',    cost:5760.23, sales:30784.41, roas:5.34, purchases:663, clicks:71, views:592, snss:94, atc:1429, pctCost:49.78, pctSales:97.77 }
+  ],
+  // Orders
+  orders: [
+    { name:'80ct Variety Pack - Conversion - TROAS - 7d Product Views',      cost:2002.10, sales:12309.20, roas:6.15, purchases:268, clicks:27, views:241, snss:53, atc:602 },
+    { name:'80ct Variety Pack - Consideration - DPVR - 14d SAKW',            cost:1502.12, sales:188.00,   roas:0.13, purchases:5,   clicks:0,  views:5,   snss:1,  atc:44 },
+    { name:'80ct Variety Pack - Consideration - CPDPV - 7d Top Coffee Brands', cost:1401.83, sales:383.17, roas:0.27, purchases:9,   clicks:4,  views:5,   snss:6,  atc:56 },
+    { name:'80ct Variety Pack - Consideration - CPDPV - Single-Serve Pods',  cost:1201.35, sales:83.59,   roas:0.07, purchases:2,   clicks:2,  views:0,   snss:2,  atc:24 },
+    { name:'80ct Variety Pack - Conversion - TROAS - 30d Product Views',     cost:1200.52, sales:7873.43, roas:6.56, purchases:177, clicks:23, views:154, snss:17, atc:457 },
+    { name:'160ct Variety Pack - Consideration - DPVR - Office Supplies',    cost:989.73,  sales:47.00,   roas:0.05, purchases:1,   clicks:0,  views:1,   snss:1,  atc:15 },
+    { name:'80ct Variety Pack - Conversion - TROAS - SnSS 365d Lookalike',  cost:945.50,  sales:32.00,   roas:0.03, purchases:1,   clicks:0,  views:1,   snss:0,  atc:2 },
+    { name:'80ct Variety Pack - Conversion - TROAS - Performance+ Retention',cost:804.48,  sales:8370.86, roas:10.41,purchases:174, clicks:16, views:158, snss:16, atc:244 },
+    { name:'80ct Variety Pack - Awareness - Reach - Video SnSS 365d',       cost:715.24,  sales:0.00,    roas:0.00, purchases:0,   clicks:0,  views:0,   snss:0,  atc:6 },
+    { name:'80ct Variety Pack - Conversion - TROAS - 30d ATC no purchase',  cost:700.69,  sales:2151.92, roas:3.07, purchases:42,  clicks:5,  views:37,  snss:8,  atc:123 },
+    { name:'80ct Variety Pack - Conversion - TROAS - Competitors SnSS 60d', cost:104.68,  sales:47.00,   roas:0.45, purchases:1,   clicks:0,  views:1,   snss:0,  atc:1 },
+    { name:'80ct Variety Pack - Conversion - TROAS - 30d Storefront Viewers',cost:2.26,    sales:0.00,    roas:0.00, purchases:0,   clicks:0,  views:0,   snss:0,  atc:0 }
+  ],
+  // DSP Lift
+  lift: [
+    { metric:'Total Cost',         saOnly:57808.99, withDSP:68928.33, lift:0.1923 },
+    { metric:'Total Product Sales',saOnly:367240.64,withDSP:321975.98,lift:-0.1233 },
+    { metric:'ROAS',               saOnly:6.35,     withDSP:4.67,     lift:-0.2647 },
+    { metric:'Total Purchase',     saOnly:7740,     withDSP:6995,     lift:-0.0963 },
+    { metric:'NTB Purchases',      saOnly:4020,     withDSP:2712,     lift:-0.3254 },
+    { metric:'NTB Purchase Rate',  saOnly:0.5194,   withDSP:0.3877,   lift:-0.2535 },
+    { metric:'NTB Sales',          saOnly:185892.28,withDSP:119957.20,lift:-0.3547 }
+  ],
+  // Exposure Sequences
+  seq: {
+    mar: [
+      { seq:'DSP_only',   users:274941, purchasers:91,   ntb:12,   sales:4400.38,  dspCost:4833.07, saCost:0,        roas:0.91,  purchaseRate:0.000331, ntbRate:0.1304 },
+      { seq:'DSP_then_SA',users:25770,  purchasers:812,  ntb:346,  sales:39257.79, dspCost:2059.70, saCost:2602.87,  roas:8.42,  purchaseRate:0.067210, ntbRate:0.4044 },
+      { seq:'SA_only',    users:2831524,purchasers:5915, ntb:4014, sales:295747.75,dspCost:0,       saCost:57808.99, roas:5.12,  purchaseRate:0.002034, ntbRate:0.6458 },
+      { seq:'SA_then_DSP',users:88243,  purchasers:3841, ntb:2346, sales:188081.21,dspCost:5547.02, saCost:53885.67, roas:3.16,  purchaseRate:0.077280, ntbRate:0.5764 }
+    ],
+    feb: [
+      { seq:'DSP_only',   roas:0.36, ntbRate:0.0455 },
+      { seq:'DSP_then_SA',roas:1.90, ntbRate:0.4109 },
+      { seq:'SA_only',    roas:5.57, ntbRate:0.6151 },
+      { seq:'SA_then_DSP',roas:6.04, ntbRate:0.6458 }
+    ]
+  },
+  // Path to Conversion
+  ptc: [
+    { path:'[[1,SP]]',                  cost:27863.19, sales:136455.63, roas:4.90, purchases:3002, ntbUsers:2026, ntbPct:0.67 },
+    { path:'[[1,SP],[2,SB]]',           cost:16807.27, sales:78521.33,  roas:4.67, purchases:1628, ntbUsers:972,  ntbPct:0.60 },
+    { path:'[[1,SP],[2,SD]]',           cost:10419.60, sales:41282.04,  roas:3.96, purchases:876,  ntbUsers:560,  ntbPct:0.64 },
+    { path:'[[1,SP],[2,SB],[3,SD]]',    cost:7615.66,  sales:29441.03,  roas:3.87, purchases:619,  ntbUsers:403,  ntbPct:0.65 },
+    { path:'[[1,SP],[2,DSP]]',          cost:20654.84, sales:22868.70,  roas:1.11, purchases:485,  ntbUsers:204,  ntbPct:0.42 },
+    { path:'[[1,SP],[2,SD],[3,SB]]',    cost:3027.64,  sales:10448.40,  roas:3.45, purchases:229,  ntbUsers:108,  ntbPct:0.47 },
+    { path:'[[1,SP],[2,SB],[3,DSP]]',   cost:11270.12, sales:8464.38,   roas:0.75, purchases:173,  ntbUsers:83,   ntbPct:0.48 },
+    { path:'[[1,SB],[2,SP]]',           cost:996.30,   sales:6284.51,   roas:6.31, purchases:133,  ntbUsers:75,   ntbPct:0.56 },
+    { path:'[[1,DSP],[2,SP]]',          cost:1123.96,  sales:6159.34,   roas:5.48, purchases:130,  ntbUsers:29,   ntbPct:0.22 },
+    { path:'[[1,DSP]]',                 cost:4444.09,  sales:4778.45,   roas:1.08, purchases:105,  ntbUsers:4,    ntbPct:0.04 }
+  ],
+  // Attribution
+  attr: {
+    mar: [
+      { channel:'DSP',    model:'First Touch', sales:43562.96, conversions:867,  pctDelta:0.164 },
+      { channel:'DSP',    model:'Last Touch',  sales:36430.81, conversions:749,  pctDelta:0.343 },
+      { channel:'Search', model:'First Touch', sales:584273.70,conversions:11616,pctDelta:0.436 },
+      { channel:'Search', model:'Last Touch',  sales:565526.55,conversions:11701,pctDelta:0.142 }
+    ],
+    feb: [
+      { channel:'DSP',    model:'First Touch', sales:37440.34, conversions:723 },
+      { channel:'DSP',    model:'Last Touch',  sales:27127.43, conversions:559 },
+      { channel:'Search', model:'First Touch', sales:406881.39,conversions:7887 },
+      { channel:'Search', model:'Last Touch',  sales:495375.56,conversions:9942 }
+    ]
+  },
+  // Assisted vs Closed
+  assisted: [
+    { campaign:'80ct - Conversion - 30d Product Views',         assisted:15167.36, closed:6275.70,  aConv:323, cConv:112 },
+    { campaign:'80ct - Conversion - 7d Product Views',          assisted:13950.06, closed:25062.72, aConv:284, cConv:553 },
+    { campaign:'80ct - Conversion - Performance+ Retention',    assisted:7152.41,  closed:0,        aConv:146, cConv:0 },
+    { campaign:'80ct - Conversion - 30d ATC no purchase',       assisted:2464.95,  closed:2954.64,  aConv:56,  cConv:59 },
+    { campaign:'80ct - Consideration - CPDPV - 7d Coffee Brands',assisted:1560.25, closed:1056.51,  aConv:33,  cConv:23 },
+    { campaign:'80ct - Conversion - Competitors SnSS 60d',      assisted:1502.73,  closed:369.58,   aConv:32,  cConv:8 },
+    { campaign:'80ct - Consideration - DPVR - 14d SAKW',        assisted:907.48,   closed:446.66,   aConv:21,  cConv:10 },
+    { campaign:'80ct - Awareness - Video - SnSS 365d',          assisted:298.38,   closed:0,        aConv:7,   cConv:0 }
+  ],
+  // Subscribe & Save
+  sns: {
+    asins: [
+      { asin:'B07VDH161F', unitsSold:755,  snsUnits:271, unitPen:0.359, sales:39843.28,  snsSales:14363.00, salesPen:0.3605 },
+      { asin:'B0CFHV6YW8', unitsSold:1673, snsUnits:471, unitPen:0.282, sales:83033.98,  snsSales:23732.01, salesPen:0.2858 },
+      { asin:'B07RQHB4T8', unitsSold:5751, snsUnits:1622,unitPen:0.282, sales:268595.03, snsSales:76224.50, salesPen:0.2838 },
+      { asin:'B09DT9LTS9', unitsSold:8027, snsUnits:2086,unitPen:0.260, sales:347755.98, snsSales:93305.58, salesPen:0.2683 },
+      { asin:'B00TW72M94', unitsSold:1565, snsUnits:405, unitPen:0.259, sales:42167.57,  snsSales:10935.00, salesPen:0.2593 },
+      { asin:'B016J5X2BS', unitsSold:522,  snsUnits:128, unitPen:0.245, sales:16682.56,  snsSales:4096.00,  salesPen:0.2455 },
+      { asin:'B019WWIB9I', unitsSold:273,  snsUnits:66,  unitPen:0.242, sales:8725.76,   snsSales:2112.00,  salesPen:0.2420 },
+      { asin:'B0CFHSWYTW', unitsSold:1545, snsUnits:352, unitPen:0.228, sales:75729.70,  snsSales:17482.26, salesPen:0.2309 },
+      { asin:'B0F7S9H5YJ', unitsSold:334,  snsUnits:65,  unitPen:0.195, sales:27940.92,  snsSales:5528.85,  salesPen:0.1979 },
+      { asin:'B07VGPBJFY', unitsSold:484,  snsUnits:90,  unitPen:0.186, sales:25521.09,  snsSales:4770.00,  salesPen:0.1869 }
+    ],
+    preSub: [
+      {orders:0, users:11250},{orders:1,users:1987},{orders:2,users:874},{orders:3,users:384},
+      {orders:4,users:257},{orders:5,users:124},{orders:6,users:106},{orders:7,users:65},
+      {orders:8,users:46},{orders:9,users:29},{orders:10,users:20}
+    ],
+    userType: {
+      mar: { subUsers:4741, subSales:252549.20, subAvg:53.27, nonUsers:68989, nonSales:687351.08, nonAvg:9.96 },
+      feb: { subUsers:4719, subSales:249990.64, subAvg:52.98, nonUsers:61524, nonSales:626229.67, nonAvg:10.18 }
+    }
+  },
+  // Audience & Funnel
+  audience: {
+    exposed: [
+      { type:'Ad-Exposed',    dpv:100062, atc:20278, purchase:12718, sales:594326.60, conversion:141700, users:53933 },
+      { type:'Non-Ad-Exposed',dpv:19992,  atc:3696,  purchase:1980,  sales:93024.48,  conversion:39983,  users:21278 }
+    ],
+    exposureGroups: [
+      { group:'1 - Single Exposure',   dpv:46159,  sales:48784.42 },
+      { group:'2 - Double Exposure',   dpv:30321,  sales:28153.92 },
+      { group:'3+ - Multi Exposure',   dpv:244190, sales:212305.16 }
+    ],
+    leadTime: {
+      adExposed:    [{day:'1d',v:7221},{day:'2d',v:256},{day:'3d',v:156},{day:'4d',v:108},{day:'5d',v:63},{day:'6d',v:44},{day:'7+',v:359}],
+      nonAdExposed: [{day:'1d',v:840}, {day:'2d',v:35}, {day:'3d',v:18}, {day:'4d',v:11}, {day:'5d',v:7},  {day:'6d',v:5},  {day:'7+',v:40}]
+    }
+  }
+};
+
+// ─────────────────────────────────────────
+// CHART DEFAULTS
+// ─────────────────────────────────────────
+Chart.defaults.color = '#5e7599';
+Chart.defaults.borderColor = '#1e2a3a';
+Chart.defaults.font.family = "'Sora', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.labels.boxWidth = 10;
+Chart.defaults.plugins.legend.labels.padding = 14;
+Chart.defaults.plugins.tooltip.backgroundColor = '#17202e';
+Chart.defaults.plugins.tooltip.borderColor = '#1e2a3a';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.titleColor = '#dde6f5';
+Chart.defaults.plugins.tooltip.bodyColor = '#8faac8';
+Chart.defaults.plugins.tooltip.padding = 11;
+Chart.defaults.plugins.tooltip.cornerRadius = 7;
+
+// ─────────────────────────────────────────
+// FORMATTERS
+// ─────────────────────────────────────────
+const fc = v => '$'+v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+const fc2 = v => '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fn = v => v.toLocaleString('en-US');
+const fp = v => (v*100).toFixed(1)+'%';
+const fp2 = v => (v*100).toFixed(2)+'%';
+const fr = v => v.toFixed(2);
+
+function deltaHTML(cur, prev, lowerBetter=false) {
+  if (!prev && prev!==0) return '';
+  const d = (cur-prev)/Math.abs(prev);
+  const pct = (d*100).toFixed(1);
+  const pos = d>=0;
+  const good = lowerBetter ? !pos : pos;
+  const cls = good?'up':'dn';
+  const arrow = pos?'↑':'↓';
+  return `<span class="sc-delta ${cls}">${arrow}${Math.abs(pct)}%</span>`;
+}
+
+// ─────────────────────────────────────────
+// TAB 0: DSP OVERVIEW
+// ─────────────────────────────────────────
+function buildDSPScorecard() {
+  const m=D.dsp.mar, f=D.dsp.feb;
+  const metrics = [
+    {l:'Total Cost',    v:fc(m.cost),        d:deltaHTML(m.cost,f.cost,true)},
+    {l:'Total Sales',   v:fc(m.sales),       d:deltaHTML(m.sales,f.sales)},
+    {l:'Total ROAS',    v:fr(m.roas),        d:deltaHTML(m.roas,f.roas)},
+    {l:'Impressions',   v:(m.impressions/1e6).toFixed(1)+'M', d:deltaHTML(m.impressions,f.impressions)},
+    {l:'Viewable Imp.', v:(m.viewableImp/1e6).toFixed(1)+'M',d:deltaHTML(m.viewableImp,f.viewableImp)},
+    {l:'eCPM',          v:'$'+fr(m.ecpm),    d:deltaHTML(m.ecpm,f.ecpm,true)},
+    {l:'Total Purchases',v:fn(m.purchases),  d:deltaHTML(m.purchases,f.purchases)},
+    {l:'Purchase Views', v:fn(m.purchaseViews),d:deltaHTML(m.purchaseViews,f.purchaseViews)},
+    {l:'Purchase Clicks',v:fn(m.purchaseClicks),d:deltaHTML(m.purchaseClicks,f.purchaseClicks)},
+    {l:'NTB Purchases',  v:fn(m.ntbPurchase), d:deltaHTML(m.ntbPurchase,f.ntbPurchase)},
+    {l:'% NTB',         v:fp(m.ntbPct),      d:deltaHTML(m.ntbPct,f.ntbPct)},
+    {l:'Total SnSS',    v:fn(m.snss),        d:deltaHTML(m.snss,f.snss)},
+    {l:'Total ATC',     v:fn(m.atc),         d:deltaHTML(m.atc,f.atc)},
+    {l:'DPVR%',         v:fp2(m.dpvr),       d:deltaHTML(m.dpvr,f.dpvr)}
+  ];
+  document.getElementById('dsp-scorecard').innerHTML = metrics.map(m=>`
+    <div class="sc-card">
+      <div class="sc-label">${m.l}</div>
+      <div class="sc-value">${m.v}</div>
+      ${m.d}<div class="sc-prev">vs Feb 2026</div>
+    </div>`).join('');
+}
+
+function buildStrategyChart() {
+  const s = D.strategy;
+  new Chart(document.getElementById('strategy-chart'),{
+    type:'bar', data:{
+      labels:s.map(x=>x.name.replace(' Campaigns','')),
+      datasets:[
+        {label:'Total Cost',data:s.map(x=>x.cost),backgroundColor:'#3b82f660',borderColor:'#3b82f6',borderWidth:1,borderRadius:4,yAxisID:'y'},
+        {label:'Total Sales',data:s.map(x=>x.sales),backgroundColor:'#14b8a660',borderColor:'#14b8a6',borderWidth:1,borderRadius:4,yAxisID:'y'},
+        {label:'ROAS',data:s.map(x=>x.roas),type:'line',borderColor:'#e8b84b',backgroundColor:'transparent',pointBackgroundColor:'#e8b84b',pointRadius:5,tension:0,yAxisID:'y2'}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>ctx.dataset.yAxisID==='y2'?` ROAS: ${ctx.parsed.y.toFixed(2)}`:` ${ctx.dataset.label}: ${fc(ctx.parsed.y)}`}}},
+    scales:{x:{grid:{color:'#1a2535'}},y:{grid:{color:'#1a2535'},ticks:{callback:v=>fc(v)}},y2:{position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>v.toFixed(2)+'x'}}}}
+  });
+  // table
+  document.getElementById('strategy-table').innerHTML=`
+  <thead><tr><th>Strategy</th><th>Cost</th><th>Sales</th><th>ROAS</th><th>Purchases</th><th>% Spend</th><th>% Sales</th></tr></thead>
+  <tbody>${s.map(r=>`<tr>
+    <td>${r.name}</td><td>${fc(r.cost)}</td><td>${fc(r.sales)}</td>
+    <td><span class="pill ${r.roas>1?'pill-g':'pill-r'}">${fr(r.roas)}x</span></td>
+    <td>${fn(r.purchases)}</td>
+    <td>${r.pctCost.toFixed(1)}%</td><td>${r.pctSales.toFixed(1)}%</td>
+  </tr>`).join('')}</tbody>
+  <tfoot><tr><td>Total</td><td>${fc(s.reduce((a,b)=>a+b.cost,0))}</td><td>${fc(s.reduce((a,b)=>a+b.sales,0))}</td><td></td><td>${fn(s.reduce((a,b)=>a+b.purchases,0))}</td><td>100%</td><td>100%</td></tr></tfoot>`;
+}
+
+function buildOrderTable() {
+  const o = D.orders;
+  document.getElementById('order-table').innerHTML=`
+  <thead><tr><th>Order</th><th>Total Cost</th><th>Sales</th><th>ROAS</th><th>Purchases</th><th>P-Clicks</th><th>P-Views</th><th>SnSS</th><th>ATC</th></tr></thead>
+  <tbody>${o.map(r=>`<tr>
+    <td style="max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${r.name}">${r.name}</td>
+    <td>${fc2(r.cost)}</td><td>${fc2(r.sales)}</td>
+    <td><span class="pill ${r.roas>=5?'pill-g':r.roas>=2?'pill-a':'pill-r'}">${fr(r.roas)}x</span></td>
+    <td>${fn(r.purchases)}</td><td>${fn(r.clicks)}</td><td>${fn(r.views)}</td><td>${fn(r.snss)}</td><td>${fn(r.atc)}</td>
+  </tr>`).join('')}</tbody>
+  <tfoot><tr><td>Grand Total</td>
+    <td>${fc2(o.reduce((a,b)=>a+b.cost,0))}</td>
+    <td>${fc2(o.reduce((a,b)=>a+b.sales,0))}</td>
+    <td></td>
+    <td>${fn(o.reduce((a,b)=>a+b.purchases,0))}</td>
+    <td>${fn(o.reduce((a,b)=>a+b.clicks,0))}</td>
+    <td>${fn(o.reduce((a,b)=>a+b.views,0))}</td>
+    <td>${fn(o.reduce((a,b)=>a+b.snss,0))}</td>
+    <td>${fn(o.reduce((a,b)=>a+b.atc,0))}</td>
+  </tr></tfoot>`;
+}
+
+function buildLiftTable() {
+  const good = m => m.includes('Cost')||m.includes('NTB')||m.includes('Purchase Rate');
+  document.getElementById('lift-table').innerHTML=`
+  <thead><tr><th>Metric</th><th>SA Only</th><th>With DSP</th><th>DSP Lift</th></tr></thead>
+  <tbody>${D.lift.map(r=>{
+    const pos = r.lift>=0;
+    const liftGood = r.metric.includes('Cost') ? !pos : pos;
+    const liftCls = liftGood?'pill-g':'pill-r';
+    const fv = v=>r.metric.includes('ROAS')||r.metric.includes('Rate')?fr(v):fc(v);
+    return `<tr>
+      <td>${r.metric}</td>
+      <td>${fv(r.saOnly)}</td>
+      <td>${fv(r.withDSP)}</td>
+      <td><span class="pill ${liftCls}">${pos?'↑':'↓'}${(Math.abs(r.lift)*100).toFixed(1)}%</span></td>
+    </tr>`;
+  }).join('')}</tbody>`;
+  // lift chart
+  const labels = D.lift.map(x=>x.metric);
+  const vals = D.lift.map(x=>x.lift*100);
+  const colors = D.lift.map(x=>x.lift>=0?'#22c55e99':'#ef444499');
+  const bcolors = D.lift.map(x=>x.lift>=0?'#22c55e':'#ef4444');
+  new Chart(document.getElementById('lift-chart'),{
+    type:'bar', data:{labels,datasets:[{data:vals,backgroundColor:colors,borderColor:bcolors,borderWidth:1,borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.x.toFixed(1)}%`}}},
+    scales:{x:{grid:{color:'#1a2535'},ticks:{callback:v=>v+'%'}},y:{grid:{display:false},ticks:{font:{size:10}}}}}
+  });
+}
+
+// ─────────────────────────────────────────
+// TAB 1: EXPOSURE SEQUENCES
+// ─────────────────────────────────────────
+const SEQ_COLORS = {DSP_only:'#a855f7',DSP_then_SA:'#3b82f6',SA_only:'#14b8a6',SA_then_DSP:'#e8b84b'};
+const SEQ_CSS = {DSP_only:'dsp-only',DSP_then_SA:'dsp-sa',SA_only:'sa-only',SA_then_DSP:'sa-dsp'};
+const SEQ_BADGE_STYLE = {DSP_only:'background:rgba(168,85,247,.15);color:#a855f7',DSP_then_SA:'background:rgba(59,130,246,.15);color:#3b82f6',SA_only:'background:rgba(20,184,166,.15);color:#14b8a6',SA_then_DSP:'background:rgba(232,184,75,.15);color:#e8b84b'};
+
+function buildSeqCards() {
+  const mar = D.seq.mar, feb = D.seq.feb;
+  document.getElementById('seq-cards').innerHTML = mar.map(s=>{
+    const f = feb.find(x=>x.seq===s.seq);
+    const totalCost = s.dspCost+s.saCost;
+    return `<div class="seq-card ${SEQ_CSS[s.seq]}">
+      <span class="seq-badge" style="${SEQ_BADGE_STYLE[s.seq]}">${s.seq.replace(/_/g,' ')}</span>
+      <div class="seq-metric"><span class="seq-m-label">Total Users</span><span class="seq-m-val">${fn(s.users)}</span></div>
+      <div class="seq-metric"><span class="seq-m-label">Purchasers</span><span class="seq-m-val highlight">${fn(s.purchasers)}</span></div>
+      <div class="seq-metric"><span class="seq-m-label">NTB Purchasers</span><span class="seq-m-val">${fn(s.ntb)}</span></div>
+      <div class="seq-metric"><span class="seq-m-label">Ad Sales</span><span class="seq-m-val">${fc(s.sales)}</span></div>
+      <div class="seq-metric"><span class="seq-m-label">Total Cost</span><span class="seq-m-val">${fc(totalCost)}</span></div>
+      <div class="seq-metric"><span class="seq-m-label">ROAS</span><span class="seq-m-val highlight">${fr(s.roas)}x</span></div>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+        ${deltaHTML(s.roas,f.roas)} <span class="sc-prev">ROAS vs Feb</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildSeqCharts() {
+  const labels = ['DSP Only','DSP→SA','SA Only','SA→DSP'];
+  const marRoas = D.seq.mar.map(x=>x.roas);
+  const febRoas = D.seq.feb.map(x=>x.roas);
+  const marNtb  = D.seq.mar.map(x=>x.ntbRate*100);
+  const febNtb  = D.seq.feb.map(x=>x.ntbRate*100);
+
+  new Chart(document.getElementById('roas-seq-chart'),{
+    type:'bar', data:{labels,datasets:[
+      {label:'Feb 2026',data:febRoas,backgroundColor:'#3b82f650',borderColor:'#3b82f6',borderWidth:1,borderRadius:4},
+      {label:'Mar 2026',data:marRoas,backgroundColor:'#e8b84b99',borderColor:'#e8b84b',borderWidth:1,borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}x`}}},
+    scales:{x:{grid:{color:'#1a2535'}},y:{grid:{color:'#1a2535'},ticks:{callback:v=>v+'x'}}}}
+  });
+
+  new Chart(document.getElementById('ntb-seq-chart'),{
+    type:'bar', data:{labels,datasets:[
+      {label:'Feb 2026',data:febNtb,backgroundColor:'#a855f750',borderColor:'#a855f7',borderWidth:1,borderRadius:4},
+      {label:'Mar 2026',data:marNtb,backgroundColor:'#22c55e99',borderColor:'#22c55e',borderWidth:1,borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%`}}},
+    scales:{x:{grid:{color:'#1a2535'}},y:{grid:{color:'#1a2535'},ticks:{callback:v=>v.toFixed(0)+'%'}}}}
+  });
+}
+
+function buildSeqUserCharts() {
+  const labels = ['DSP Only','DSP→SA','SA Only','SA→DSP'];
+  const m = D.seq.mar;
+  new Chart(document.getElementById('users-chart'),{
+    type:'bar', data:{labels,datasets:[
+      {label:'Total Users',data:m.map(x=>x.users),backgroundColor:'#3b82f650',borderColor:'#3b82f6',borderWidth:1,borderRadius:3},
+      {label:'Purchasers',data:m.map(x=>x.purchasers),backgroundColor:'#e8b84bcc',borderColor:'#e8b84b',borderWidth:1,borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fn(ctx.parsed.y)}`}}},
+    scales:{x:{grid:{color:'#1a2535'}},y:{type:'logarithmic',grid:{color:'#1a2535'},ticks:{callback:v=>fn(v)}}}}
+  });
+
+  new Chart(document.getElementById('prate-chart'),{
+    type:'bar', data:{labels,datasets:[
+      {label:'Purchase Rate %',data:m.map(x=>x.purchaseRate*100),backgroundColor:'#14b8a660',borderColor:'#14b8a6',borderWidth:1,borderRadius:3,yAxisID:'y'},
+      {label:'NTB Rate %',data:m.map(x=>x.ntbRate*100),backgroundColor:'#a855f760',borderColor:'#a855f7',borderWidth:1,borderRadius:3,yAxisID:'y'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}%`}}},
+    scales:{x:{grid:{color:'#1a2535'}},y:{grid:{color:'#1a2535'},ticks:{callback:v=>v.toFixed(2)+'%'}}}}
+  });
+}
+
+function buildSeqTable() {
+  const m = D.seq.mar;
+  document.getElementById('seq-table').innerHTML=`
+  <thead><tr><th>Sequence</th><th>Total Users</th><th>Purchasers</th><th>NTB</th><th>Sales</th><th>DSP Cost</th><th>SA Spend</th><th>ROAS</th><th>Purchase Rate</th><th>NTB Rate</th></tr></thead>
+  <tbody>${m.map(r=>`<tr>
+    <td><span class="pill" style="${SEQ_BADGE_STYLE[r.seq]}">${r.seq.replace(/_/g,' ')}</span></td>
+    <td>${fn(r.users)}</td><td>${fn(r.purchasers)}</td><td>${fn(r.ntb)}</td>
+    <td>${fc(r.sales)}</td><td>${fc(r.dspCost)}</td><td>${fc(r.saCost)}</td>
+    <td><span class="pill ${r.roas>=5?'pill-g':r.roas>=2?'pill-a':'pill-r'}">${fr(r.roas)}x</span></td>
+    <td>${fp2(r.purchaseRate)}</td><td>${fp(r.ntbRate)}</td>
+  </tr>`).join('')}</tbody>`;
+}
+
+// ─────────────────────────────────────────
+// TAB 2: PATH TO CONVERSION
+// ─────────────────────────────────────────
+function buildPTCCharts() {
+  const p = D.ptc;
+  const labels = p.map(x=>x.path);
+  new Chart(document.getElementById('ptc-chart'),{
+    type:'bar', data:{labels,datasets:[{
+      data:p.map(x=>x.sales),
+      backgroundColor:['#e8b84bcc','#3b82f6cc','#14b8a6cc','#a855f7cc','#22c55ecc','#ef4444cc','#f59e0bcc','#6366f1cc','#ec4899cc','#84cc16cc'],
+      borderWidth:0,borderRadius:4
+    }]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fc(ctx.parsed.x)}`}}},
+    scales:{x:{grid:{color:'#1a2535'},ticks:{callback:v=>fc(v)}},y:{grid:{display:false},ticks:{font:{family:'JetBrains Mono, monospace',size:9}}}}}
+  });
+
+  new Chart(document.getElementById('ptc-roas-chart'),{
+    type:'bar', data:{labels,datasets:[{
+      label:'ROAS',data:p.map(x=>x.roas),
+      backgroundColor:p.map(x=>x.roas>=4?'#22c55e99':x.roas>=2?'#f59e0b99':'#ef444499'),
+      borderColor:p.map(x=>x.roas>=4?'#22c55e':x.roas>=2?'#f59e0b':'#ef4444'),
+      borderWidth:1,borderRadius:4
+    }]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ROAS: ${ctx.parsed.x.toFixed(2)}x`}}},
+    scales:{x:{grid:{color:'#1a2535'},ticks:{callback:v=>v.toFixed(1)+'x'}},y:{grid:{display:false},ticks:{font:{family:'JetBrains Mono, monospace',size:9}}}}}
+  });
+
+  new Chart(document.getElementById('ptc-ntb-chart'),{
+    type:'bar', data:{labels,datasets:[{
+      label:'NTB User %',data:p.map(x=>x.ntbPct*100),
+      backgroundColor:p.map(x=>x.ntbPct>=0.5?'#a855f799':'#3b82f699'),
+      borderColor:p.map(x=>x.ntbPct>=0.5?'#a855f7':'#3b82f6'),
+      borderWidth:1,borderRadius:4
+    }]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` NTB: ${ctx.parsed.x.toFixed(1)}%`}}},
+    scales:{x:{grid:{color:'#1a2535'},ticks:{callback:v=>v+'%'}},y:{grid:{display:false},ticks:{font:{family:'JetBrains Mono, monospace',size:9}}}}}
+  });
+}
+
+function buildPTCTable() {
+  document.getElementById('ptc-table').innerHTML=`
+  <thead><tr><th>Path</th><th>Total Cost</th><th>Sales</th><th>ROAS</th><th>Purchases</th><th>NTB%</th></tr></thead>
+  <tbody>${D.ptc.map(r=>`<tr>
+    <td><span class="path-label">${r.path}</span></td>
+    <td>${fc2(r.cost)}</td><td>${fc2(r.sales)}</td>
+    <td><span class="pill ${r.roas>=4?'pill-g':r.roas>=2?'pill-a':'pill-r'}">${fr(r.roas)}x</span></td>
+    <td>${fn(r.purchases)}</td>
+    <td><span class="pill ${r.ntbPct>=0.5?'pill-p':'pill-b'}">${fp(r.ntbPct)}</span></td>
+  </tr>`).join('')}</tbody>`;
+}
+
+// ─────────────────────────────────────────
+// TAB 3: ATTRIBUTION
+// ─────────────────────────────────────────
+function buildAttrTable() {
+  const m = D.attr.mar;
+  document.getElementById('attr-table').innerHTML=`
+  <thead><tr><th>Channel</th><th>Attribution</th><th>Sales (Mar)</th><th>Conversions</th><th>MoM Sales Δ</th></tr></thead>
+  <tbody>${m.map(r=>{
+    const f=D.attr.feb.find(x=>x.channel===r.channel&&x.model===r.model);
+    return `<tr>
+      <td><span class="pill ${r.channel==='DSP'?'pill-b':'pill-a'}">${r.channel}</span></td>
+      <td>${r.model}</td><td>${fc(r.sales)}</td><td>${fn(r.conversions)}</td>
+      <td>${deltaHTML(r.sales,f?.sales)}</td>
+    </tr>`;
+  }).join('')}</tbody>
+  <tfoot><tr><td>Total DSP</td><td></td><td>${fc(m.filter(x=>x.channel==='DSP').reduce((a,b)=>a+b.sales,0))}</td><td>${fn(m.filter(x=>x.channel==='DSP').reduce((a,b)=>a+b.conversions,0))}</td><td></td></tr></tfoot>`;
+}
+
+function buildAttrCharts() {
+  const labels=['DSP First Touch','DSP Last Touch','Search First Touch','Search Last Touch'];
+  const marS=D.attr.mar.map(x=>x.sales), febS=D.attr.feb.map(x=>x.sales);
+  new Chart(document.getElementById('attr-chart'),{
+    type:'bar', data:{labels,datasets:[
+      {label:'Feb 2026',data:febS,backgroundColor:'#3b82f650',borderColor:'#3b82f6',borderWidth:1,borderRadius:4},
+      {label:'Mar 2026',data:marS,backgroundColor:'#e8b84b99',borderColor:'#e8b84b',borderWidth:1,borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fc(ctx.parsed.y)}`}}},
+    scales:{x:{grid:{color:'#1a2535'},ticks:{font:{size:10}}},y:{grid:{color:'#1a2535'},ticks:{callback:v=>fc(v)}}}}
+  });
+
+  const pieCfg = (ft, lt, id) => new Chart(document.getElementById(id),{
+    type:'doughnut', data:{labels:['First Touch','Last Touch'],datasets:[{data:[ft,lt],backgroundColor:['#3b82f6cc','#e8b84bcc'],borderColor:['#3b82f6','#e8b84b'],borderWidth:2,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fp(ctx.parsed/(ft+lt))}`}}}}
+  });
+  const dspMar = D.attr.mar.filter(x=>x.channel==='DSP');
+  const dspFeb = D.attr.feb.filter(x=>x.channel==='DSP');
+  pieCfg(dspMar[0].sales, dspMar[1].sales, 'dsp-attr-pie-mar');
+  pieCfg(dspFeb[0].sales, dspFeb[1].sales, 'dsp-attr-pie-feb');
+
+  // Attribution shift chart
+  const ftShareFeb = dspFeb[0].sales/(dspFeb[0].sales+dspFeb[1].sales)*100;
+  const ftShareMar = dspMar[0].sales/(dspMar[0].sales+dspMar[1].sales)*100;
+  new Chart(document.getElementById('attr-shift-chart'),{
+    type:'bar',
+    data:{labels:['Feb 2026','Mar 2026'],datasets:[
+      {label:'First Touch %',data:[ftShareFeb,ftShareMar],backgroundColor:['#3b82f660','#3b82f6cc'],borderColor:'#3b82f6',borderWidth:1,borderRadius:5}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` First Touch Share: ${ctx.parsed.y.toFixed(1)}%`}}},
+    scales:{x:{grid:{color:'#1a2535'}},y:{grid:{color:'#1a2535'},min:40,max:60,ticks:{callback:v=>v+'%'}}}}
+  });
+}
+
+function buildAssistedTable() {
+  const a = D.assisted;
+  document.getElementById('assisted-table').innerHTML=`
+  <thead><tr><th>Campaign</th><th>Assisted Sales</th><th>Closed Sales</th><th>Assist Conv.</th><th>Closed Conv.</th><th>Ratio</th></tr></thead>
+  <tbody>${a.map(r=>{
+    const ratio = r.closed>0 ? (r.assisted/r.closed).toFixed(1)+'x' : 'Assist Only';
+    const cls = r.closed>0?'pill-g':'pill-b';
+    return `<tr>
+      <td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
+      <td>${fc(r.assisted)}</td><td>${r.closed?fc(r.closed):'-'}</td>
+      <td>${fn(r.aConv)}</td><td>${r.cConv?fn(r.cConv):'-'}</td>
+      <td><span class="pill ${cls}">${ratio}</span></td>
+    </tr>`;
+  }).join('')}</tbody>
+  <tfoot><tr><td>Grand Total</td><td>${fc(a.reduce((s,x)=>s+x.assisted,0))}</td><td>${fc(a.reduce((s,x)=>s+x.closed,0))}</td><td>${fn(a.reduce((s,x)=>s+x.aConv,0))}</td><td>${fn(a.reduce((s,x)=>s+x.cConv,0))}</td><td></td></tr></tfoot>`;
+  new Chart(document.getElementById('assisted-chart'),{
+    type:'bar', data:{
+      labels:a.map(x=>x.campaign.replace('80ct Variety Pack - ','').replace(' - REC','').substring(0,30)+'…'),
+      datasets:[
+        {label:'Assisted Sales',data:a.map(x=>x.assisted),backgroundColor:'#3b82f660',borderColor:'#3b82f6',borderWidth:1,borderRadius:3},
+        {label:'Closed Sales',data:a.map(x=>x.closed),backgroundColor:'#22c55e60',borderColor:'#22c55e',borderWidth:1,borderRadius:3}
+      ]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fc(ctx.parsed.x)}`}}},
+    scales:{x:{grid:{color:'#1a2535'},ticks:{callback:v=>fc(v)}},y:{grid:{display:false},ticks:{font:{size:9}}}}}
+  });
+}
+
+// ─────────────────────────────────────────
+// TAB 4: SUBSCRIBE & SAVE
+// ─────────────────────────────────────────
+function buildSNSScorecard() {
+  const u = D.sns.userType;
+  const totalSnsSalesMar = D.sns.asins.reduce((a,b)=>a+b.snsSales,0);
+  const totalSalesMar = D.sns.asins.reduce((a,b)=>a+b.sales,0);
+  const avgPen = D.sns.asins.reduce((a,b)=>a+b.salesPen,0)/D.sns.asins.length;
+  const metrics=[
+    {l:'Subscriber Sales',  v:fc(u.mar.subSales),  d:deltaHTML(u.mar.subSales,u.feb.subSales)},
+    {l:'Non-Sub Sales',     v:fc(u.mar.nonSales),  d:deltaHTML(u.mar.nonSales,u.feb.nonSales)},
+    {l:'Subscriber Users',  v:fn(u.mar.subUsers),  d:deltaHTML(u.mar.subUsers,u.feb.subUsers)},
+    {l:'Avg Subscriber $$', v:fc2(u.mar.subAvg),   d:deltaHTML(u.mar.subAvg,u.feb.subAvg)},
+    {l:'Avg Non-Sub $$',    v:fc2(u.mar.nonAvg),   d:deltaHTML(u.mar.nonAvg,u.feb.nonAvg)},
+    {l:'Total SnS Sales',   v:fc(totalSnsSalesMar), d:''},
+    {l:'Avg SnS Penetration',v:fp(avgPen),          d:''}
+  ];
+  document.getElementById('sns-scorecard').innerHTML=metrics.map(m=>`
+    <div class="sc-card"><div class="sc-label">${m.l}</div><div class="sc-value">${m.v}</div>${m.d}<div class="sc-prev">vs Feb 2026</div></div>`).join('');
+}
+
+function buildSNSCharts() {
+  const a = D.sns.asins;
+  document.getElementById('sns-asin-table').innerHTML=`
+  <thead><tr><th>ASIN</th><th>Units Sold</th><th>SnS Units</th><th>Unit Pen.</th><th>Total Sales</th><th>SnS Sales</th><th>Sales Pen.</th></tr></thead>
+  <tbody>${a.map(r=>`<tr>
+    <td><span style="font-family:var(--mono);font-size:11px">${r.asin}</span></td>
+    <td>${fn(r.unitsSold)}</td><td>${fn(r.snsUnits)}</td>
+    <td>${fp(r.unitPen)}</td><td>${fc(r.sales)}</td><td>${fc(r.snsSales)}</td>
+    <td>
+      <span class="pill ${r.salesPen>=0.3?'pill-g':r.salesPen>=0.2?'pill-a':'pill-r'}">${fp(r.salesPen)}</span>
+      <div class="asin-row-bar"><div class="asin-bar-fill" style="width:${(r.salesPen*100/0.37*100).toFixed(0)}%"></div></div>
+    </td>
+  </tr>`).join('')}</tbody>`;
+
+  new Chart(document.getElementById('sns-penetration-chart'),{
+    type:'bar', data:{
+      labels:a.map(x=>x.asin),
+      datasets:[{label:'Sales Penetration %',data:a.map(x=>x.salesPen*100),backgroundColor:'#14b8a699',borderColor:'#14b8a6',borderWidth:1,borderRadius:4}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(1)}%`}}},
+    scales:{x:{grid:{color:'#1a2535'},ticks:{font:{family:'JetBrains Mono, monospace',size:9}}},y:{grid:{color:'#1a2535'},ticks:{callback:v=>v+'%'}}}}
+  });
+
+  new Chart(document.getElementById('sns-funnel-chart'),{
+    type:'bar', data:{
+      labels:D.sns.preSub.map(x=>x.orders+''),
+      datasets:[{label:'SnS Enrollments',data:D.sns.preSub.map(x=>x.users),backgroundColor:'#3b82f699',borderColor:'#3b82f6',borderWidth:1,borderRadius:4}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fn(ctx.parsed.y)} users`}}},
+    scales:{x:{grid:{color:'#1a2535'},title:{display:true,text:'Purchases Before SnS Enrollment',color:'#5e7599',font:{size:10}}},y:{grid:{color:'#1a2535'},ticks:{callback:v=>fn(v)}}}}
+  });
+
+  const ut = D.sns.userType;
+  new Chart(document.getElementById('user-type-chart'),{
+    type:'bar', data:{
+      labels:['Subscriber Sales (Feb)','Subscriber Sales (Mar)','Non-Sub Sales (Feb)','Non-Sub Sales (Mar)'],
+      datasets:[{data:[ut.feb.subSales,ut.mar.subSales,ut.feb.nonSales,ut.mar.nonSales],
+        backgroundColor:['#14b8a650','#14b8a6cc','#3b82f650','#3b82f6cc'],
+        borderColor:['#14b8a6','#14b8a6','#3b82f6','#3b82f6'],borderWidth:1,borderRadius:4}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fc(ctx.parsed.y)}`}}},
+    scales:{x:{grid:{color:'#1a2535'},ticks:{font:{size:10}}},y:{grid:{color:'#1a2535'},ticks:{callback:v=>fc(v)}}}}
+  });
+}
+
+// ─────────────────────────────────────────
+// TAB 5: AUDIENCE & FUNNEL
+// ─────────────────────────────────────────
+function buildAudienceCharts() {
+  const e = D.audience.exposed;
+  document.getElementById('exposed-table').innerHTML=`
+  <thead><tr><th>Exposure Type</th><th>DPV</th><th>Add to Cart</th><th>Purchases</th><th>Sales</th><th>Users</th><th>DPV→Purchase</th></tr></thead>
+  <tbody>${e.map(r=>`<tr>
+    <td><span class="pill ${r.type==='Ad-Exposed'?'pill-b':'pill-a'}">${r.type}</span></td>
+    <td>${fn(r.dpv)}</td><td>${fn(r.atc)}</td><td>${fn(r.purchase)}</td>
+    <td>${fc(r.sales)}</td><td>${fn(r.users)}</td>
+    <td>${fp(r.purchase/r.dpv)}</td>
+  </tr>`).join('')}</tbody>`;
+
+  // Funnel conversion chart
+  new Chart(document.getElementById('funnel-cvr-chart'),{
+    type:'bar', data:{
+      labels:['DPV','Add to Cart','Purchases'],
+      datasets:[
+        {label:'Ad-Exposed',data:[e[0].dpv,e[0].atc,e[0].purchase],backgroundColor:'#3b82f699',borderColor:'#3b82f6',borderWidth:1,borderRadius:3},
+        {label:'Non-Ad-Exposed',data:[e[1].dpv,e[1].atc,e[1].purchase],backgroundColor:'#f59e0b99',borderColor:'#f59e0b',borderWidth:1,borderRadius:3}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fn(ctx.parsed.y)}`}}},
+    scales:{x:{grid:{color:'#1a2535'}},y:{type:'logarithmic',grid:{color:'#1a2535'},ticks:{callback:v=>fn(v)}}}}
+  });
+
+  // Pies
+  const pieDoughnut=(id,labels,data,colors)=>new Chart(document.getElementById(id),{
+    type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors.map(c=>c+'cc'),borderColor:colors,borderWidth:2,hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fp(ctx.parsed/data.reduce((a,b)=>a+b,0))}`}}}}
+  });
+  const totSales = e[0].sales+e[1].sales, totUsers = e[0].users+e[1].users;
+  pieDoughnut('exp-sales-pie',['Ad-Exposed','Non-Ad-Exposed'],[e[0].sales,e[1].sales],['#3b82f6','#f59e0b']);
+  pieDoughnut('exp-reach-pie',['Ad-Exposed','Non-Ad-Exposed'],[e[0].users,e[1].users],['#3b82f6','#f59e0b']);
+  const g = D.audience.exposureGroups;
+  pieDoughnut('exp-group-pie',g.map(x=>x.group),g.map(x=>x.sales),['#14b8a6','#a855f7','#e8b84b']);
+
+  // Lead time
+  const lt = D.audience.leadTime;
+  new Chart(document.getElementById('lead-time-chart'),{
+    type:'bar', data:{
+      labels:lt.adExposed.map(x=>x.day),
+      datasets:[
+        {label:'Ad-Exposed',data:lt.adExposed.map(x=>x.v),backgroundColor:'#3b82f699',borderColor:'#3b82f6',borderWidth:1,borderRadius:4},
+        {label:'Non-Ad-Exposed',data:lt.nonAdExposed.map(x=>x.v),backgroundColor:'#f59e0b99',borderColor:'#f59e0b',borderWidth:1,borderRadius:4}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fn(ctx.parsed.y)} purchases`}}},
+    scales:{x:{grid:{color:'#1a2535'}},y:{type:'logarithmic',grid:{color:'#1a2535'},ticks:{callback:v=>fn(v)}}}}
+  });
+}
+
+// ─────────────────────────────────────────
+// TAB SWITCHER
+// ─────────────────────────────────────────
+function switchTab(i) {
+  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
+  document.querySelectorAll('.nav-tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  buildDSPScorecard(); buildStrategyChart(); buildOrderTable(); buildLiftTable();
+  buildSeqCards(); buildSeqCharts(); buildSeqUserCharts(); buildSeqTable();
+  buildPTCTable(); buildPTCCharts();
+  buildAttrTable(); buildAttrCharts(); buildAssistedTable();
+  buildSNSScorecard(); buildSNSCharts();
+  buildAudienceCharts();
+});
+</script>
+</body>
+</html>
